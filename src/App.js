@@ -10,17 +10,18 @@ const App = () => {
   useEffect(() => {
     //Check if localstorage is
     const storedTasks = JSON.parse(window.localStorage.getItem("tasks"));
-    console.log(storedTasks);
-    if (storedTasks && storedTasks.length > 0) {
+    
+    if (storedTasks && storedTasks.length >= 0) {
       setTasks(storedTasks);
+      //console.log(storedTasks);
     }
   }, []);
 
   //UseEffect re-renders application whenever dependency objects are changed
   useEffect(() => {
     //Save to localstorage whenever tasks is updated
-    if (tasks.length > 0) {
-      //console.log("save tasks to localstorage");
+    if (tasks.length >= 0) {
+      //console.log("Tasks saved!");
       window.localStorage.setItem("tasks", JSON.stringify(tasks));
     }
   }, [tasks]);
@@ -33,9 +34,11 @@ const App = () => {
 
   //Handles saving to the tasks array
   const handleSubmit = () => {
-    //console.log("handle submit", title);
+    console.log("Added:", title);
     setTasks([...tasks, title]);
     setTitle("");
+    
+    //console.log(tasks);
   };
 
   const toggleEditMode = (taskIndex) => {
@@ -63,11 +66,18 @@ const App = () => {
   const handleRemove = (taskIndex) => {
     //TODO: Remove todo using es6 filter
 
-    const updateArr = tasks.filter((task, index) => index !== taskIndex);
-
+    const updateArr = [...tasks.filter((task, index) => index !== taskIndex)]
+    
     setTasks(updateArr);
 
+    refreshPage();
+    
+
   };
+
+  function refreshPage(){
+    window.location.reload();
+  }
 
   return (
     <div className="App">
@@ -108,10 +118,10 @@ const App = () => {
                       onClick={() => handleRemove(index)}>Delete</button>
                   </>
                 ) : (
-                    <button
-                      type="button"
-                      onClick={handleEdit}>Save</button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={handleEdit}>Save</button>
+                )}
 
               </div>
             </li>
