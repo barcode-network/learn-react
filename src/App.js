@@ -43,12 +43,12 @@ const App = () => {
   }
 
   const nudge = (val) => {
-   
+   //console.log(vall);
     setRow(val)
   }
 
 
-  //Saves data
+  //Saves the data
   const handleSubmit = () => {
    
     setTasks([...tasks, title]);
