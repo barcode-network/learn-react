@@ -77,7 +77,7 @@ const App = () => {
     //TODO: Remove todo using es6 filter
 
     const removeTask = tasks.filter((task, index) => index !== taskIndex);
-   // console.log(removeTask);
+    console.log(removeTask);
     setTasks(removeTask);
     refreshPage();
 
