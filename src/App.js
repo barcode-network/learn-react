@@ -25,32 +25,27 @@ const App = () => {
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    //Check if localstorage is
-    const storedTasks = JSON.parse(window.localStorage.getItem("tasks"));
-    console.log(storedTasks);
-    if (storedTasks && storedTasks.length > 0) {
-      setTasks(storedTasks);
-    }
-  }, []);
-
-  useEffect(() => {
-    db.collection("todos").onSnapshot((querySnapshot) => {
-      var todos = [];
-      querySnapshot.forEach((doc) => {
-        todos.push(doc.data().title);
+    // db.collection("todos").onSnapshot((querySnapshot) => {
+    //   var todos = [];
+    //   querySnapshot.forEach((doc) => {
+    //     todos.push(doc.data().title);
+    //   });
+    //   console.log("Current todos: ", todos);
+    // });
+    let dbTasks = [];
+    db.collection("todos").onSnapshot((snapshot) => {
+      let changes = snapshot.docChanges();
+      changes.forEach((doc) => {
+        let obj = {
+          id: doc.doc.id,
+          title: doc.doc.data().title,
+        };
+        dbTasks = [obj, ...dbTasks];
       });
-      console.log("Current todos: ", todos);
+
+      setTasks([...dbTasks]);
     });
   }, []);
-
-  //UseEffect re-renders application whenever dependency objects are changed
-  useEffect(() => {
-    //Save to localstorage whenever tasks is updated
-    if (tasks.length > 0) {
-      console.log("save tasks to localstorage");
-      window.localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
-  }, [tasks]);
 
   //Update the state object whenever the field is changed
   const handleFieldChange = (e) => {
@@ -60,17 +55,33 @@ const App = () => {
 
   //Handles saving to the tasks array
   const handleSubmit = () => {
-    console.log("handle submit", title);
-    setTasks([...tasks, title]);
-    setTitle("");
+    if (!title) {
+      return;
+    }
+    let doc = {
+      title: title,
+    };
+    db.collection("todos")
+      .add(doc)
+      .then((doc) => {
+        console.log(doc);
+      });
   };
 
   const handleEdit = () => {
     //TODO: Edit todo using the es6 find
   };
 
-  const handleRemove = () => {
-    //TODO: Remove todo using es6 filter
+  const handleRemove = (id) => {
+    db.collection("todos")
+      .doc(id)
+      .delete()
+      .then(() => {
+        console.log("Document successfully deleted!");
+      })
+      .catch((error) => {
+        console.error("Error removing document: ", error);
+      });
   };
 
   return (
@@ -92,11 +103,11 @@ const App = () => {
         {tasks?.length > 0
           ? tasks.map((item, index) => (
               <li key={index}>
-                {item}
-                <button type="button" onClick={handleEdit}>
+                {item.title}
+                <button type="button" onClick={() => handleEdit()}>
                   Edit
                 </button>
-                <button type="button" onClick={handleRemove}>
+                <button type="button" onClick={() => handleRemove(item.id)}>
                   Delete
                 </button>
               </li>
