@@ -1,16 +1,19 @@
-## Exercise 1
+## Exercise 2
 
-This exercise is to edit and remove items from a todo list
+This exercise is to edit and remove items from a todo list stored in Firebase
 
 ### To do
 
-- [ ] Edit to-do
+- [ ] Add to-do (to Firebase)
+- [ ] Edit to-do (to Firebase)
 - [ ] Remove to-do
 
 ### Setup Instructions
 
 - Fork the repo
-- Clone the repo
+- Setup Firebase project and copy config credentials
+- Rename `.env.example` to `.env.local`
+- Copy Firebase credentials to `.env.local`
 - Install dependencies using `yarn`
 - Run locally using `yarn start`
 
