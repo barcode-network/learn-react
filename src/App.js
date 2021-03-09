@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import firebase from "firebase/app";
 import "firebase/firestore";
-
 import "./App.css";
+import TaskListItem from "./Tasks";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
@@ -25,53 +25,31 @@ const App = () => {
   const [tasks, setTasks] = useState([]);
 
   useEffect(() => {
-    //Check if localstorage is
-    const storedTasks = JSON.parse(window.localStorage.getItem("tasks"));
-    console.log(storedTasks);
-    if (storedTasks && storedTasks.length > 0) {
-      setTasks(storedTasks);
-    }
+    getTodoList();
   }, []);
 
-  useEffect(() => {
-    db.collection("todos").onSnapshot((querySnapshot) => {
-      var todos = [];
-      querySnapshot.forEach((doc) => {
-        todos.push(doc.data().title);
-      });
-      console.log("Current todos: ", todos);
+
+  function getTodoList() {
+    db.collection("tasks").onSnapshot(function (querySnapshot) {
+      setTasks(
+        querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          task: doc.data().task,
+        }))
+      );
     });
-  }, []);
+  }
 
-  //UseEffect re-renders application whenever dependency objects are changed
-  useEffect(() => {
-    //Save to localstorage whenever tasks is updated
-    if (tasks.length > 0) {
-      console.log("save tasks to localstorage");
-      window.localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
-  }, [tasks]);
+  function handleSubmit(e) {
+    e.preventDefault();
 
-  //Update the state object whenever the field is changed
-  const handleFieldChange = (e) => {
-    const { value } = e.target;
-    setTitle(value);
-  };
+    db.collection("tasks").add({
+      task: title,
+    });
 
-  //Handles saving to the tasks array
-  const handleSubmit = () => {
-    console.log("handle submit", title);
-    setTasks([...tasks, title]);
     setTitle("");
-  };
+  }
 
-  const handleEdit = () => {
-    //TODO: Edit todo using the es6 find
-  };
-
-  const handleRemove = () => {
-    //TODO: Remove todo using es6 filter
-  };
 
   return (
     <div className="App">
@@ -81,7 +59,7 @@ const App = () => {
           name="task_title"
           value={title}
           placeholder="Add task here"
-          onChange={handleFieldChange}
+          onChange={(e) => setTitle(e.target.value)}
         />
         <button type="button" onClick={handleSubmit}>
           Add task
@@ -90,21 +68,19 @@ const App = () => {
 
       <ul>
         {tasks?.length > 0
-          ? tasks.map((item, index) => (
-              <li key={index}>
-                {item}
-                <button type="button" onClick={handleEdit}>
-                  Edit
-                </button>
-                <button type="button" onClick={handleRemove}>
-                  Delete
-                </button>
-              </li>
-            ))
+          ? tasks.map((task, index) => (
+            <li key={index}>
+              <TaskListItem
+                task={task.task}
+                id={task.id}
+              />
+            </li>
+          ))
           : "Nothing in list"}
       </ul>
-    </div>
+
+    </div >
   );
-};
+}
 
 export default App;
