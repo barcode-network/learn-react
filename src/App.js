@@ -1,5 +1,24 @@
 import { useState, useEffect } from "react";
+import firebase from "firebase/app";
+import "firebase/firestore";
+
 import "./App.css";
+
+const firebaseConfig = {
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTHDOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_STORAGEBUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGINGSENDERID,
+  appId: process.env.REACT_APP_FIREBASE_APPID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENTID,
+};
+//This check is to avoid firebase re-initializing multiple times
+if (typeof window !== "undefined" && !firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+//Load firebase firestore
+var db = firebase.firestore();
 
 const App = () => {
   const [title, setTitle] = useState("");
@@ -12,6 +31,16 @@ const App = () => {
     if (storedTasks && storedTasks.length > 0) {
       setTasks(storedTasks);
     }
+  }, []);
+
+  useEffect(() => {
+    db.collection("todos").onSnapshot((querySnapshot) => {
+      var todos = [];
+      querySnapshot.forEach((doc) => {
+        todos.push(doc.data().title);
+      });
+      console.log("Current todos: ", todos);
+    });
   }, []);
 
   //UseEffect re-renders application whenever dependency objects are changed
