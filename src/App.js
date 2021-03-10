@@ -23,34 +23,34 @@ var db = firebase.firestore();
 const App = () => {
   const [title, setTitle] = useState("");
   const [tasks, setTasks] = useState([]);
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
-    //Check if localstorage is
-    const storedTasks = JSON.parse(window.localStorage.getItem("tasks"));
-    console.log(storedTasks);
-    if (storedTasks && storedTasks.length > 0) {
-      setTasks(storedTasks);
-    }
+    // db.collection("todos").onSnapshot((querySnapshot) => {
+    //   var todos = [];
+    //   querySnapshot.forEach((doc) => {
+    //     todos.push(doc.data().title);
+    //   });
+    //   console.log("Current todos: ", todos);
+    // });
+    fetchTodos()
   }, []);
 
-  useEffect(() => {
-    db.collection("todos").onSnapshot((querySnapshot) => {
-      var todos = [];
-      querySnapshot.forEach((doc) => {
-        todos.push(doc.data().title);
+  const fetchTodos = () => {
+    let dbTasks = [];
+    db.collection("todos").onSnapshot((snapshot) => {
+      let changes = snapshot.docChanges();
+      changes.forEach((doc) => {
+        let obj = {
+          id: doc.doc.id,
+          title: doc.doc.data().title,
+        };
+        dbTasks = [obj, ...dbTasks];
       });
-      console.log("Current todos: ", todos);
-    });
-  }, []);
 
-  //UseEffect re-renders application whenever dependency objects are changed
-  useEffect(() => {
-    //Save to localstorage whenever tasks is updated
-    if (tasks.length > 0) {
-      console.log("save tasks to localstorage");
-      window.localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
-  }, [tasks]);
+      setTasks([...dbTasks]);
+    });
+  }
 
   //Update the state object whenever the field is changed
   const handleFieldChange = (e) => {
@@ -58,19 +58,47 @@ const App = () => {
     setTitle(value);
   };
 
+  const handleEditFieldChange = (e) => {
+    const { value } = e.target;
+    setEditText(value);
+  };
+
   //Handles saving to the tasks array
   const handleSubmit = () => {
-    console.log("handle submit", title);
-    setTasks([...tasks, title]);
-    setTitle("");
+    if (!title) {
+      return;
+    }
+    let doc = {
+      title: title,
+    };
+    db.collection("todos")
+      .add(doc)
+      .then((doc) => {
+        console.log(doc);
+      });
   };
 
-  const handleEdit = () => {
+  const handleEdit = (id) => {
     //TODO: Edit todo using the es6 find
+    if(!editText) {
+      return
+    }
+    db.collection("todos").doc(id).update({title: editText}).then(() => {
+      fetchTodos()
+    })
   };
 
-  const handleRemove = () => {
-    //TODO: Remove todo using es6 filter
+  const handleRemove = (id) => {
+    db.collection("todos")
+      .doc(id)
+      .delete()
+      .then(() => {
+        console.log("Document successfully deleted!");
+        fetchTodos()
+      })
+      .catch((error) => {
+        console.error("Error removing document: ", error);
+      });
   };
 
   return (
@@ -79,7 +107,6 @@ const App = () => {
         <input
           type="text"
           name="task_title"
-          value={title}
           placeholder="Add task here"
           onChange={handleFieldChange}
         />
@@ -92,13 +119,20 @@ const App = () => {
         {tasks?.length > 0
           ? tasks.map((item, index) => (
               <li key={index}>
-                {item}
-                <button type="button" onClick={handleEdit}>
+                {item.title}
+                <button type="button" onClick={() => handleEdit(item.id)}>
                   Edit
                 </button>
-                <button type="button" onClick={handleRemove}>
+                <button type="button" onClick={() => handleRemove(item.id)}>
                   Delete
                 </button>
+                <input
+                  type="text"
+                  name="edit_task"
+                  defaultValue={item.title}
+                  // placeholder="Edit task...."
+                  onChange={handleEditFieldChange}
+                />
               </li>
             ))
           : "Nothing in list"}
