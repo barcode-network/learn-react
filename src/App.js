@@ -23,6 +23,7 @@ var db = firebase.firestore();
 const App = () => {
   const [title, setTitle] = useState("");
   const [tasks, setTasks] = useState([]);
+  const [editText, setEditText] = useState("");
 
   useEffect(() => {
     // db.collection("todos").onSnapshot((querySnapshot) => {
@@ -32,6 +33,10 @@ const App = () => {
     //   });
     //   console.log("Current todos: ", todos);
     // });
+    fetchTodos()
+  }, []);
+
+  const fetchTodos = () => {
     let dbTasks = [];
     db.collection("todos").onSnapshot((snapshot) => {
       let changes = snapshot.docChanges();
@@ -45,12 +50,17 @@ const App = () => {
 
       setTasks([...dbTasks]);
     });
-  }, []);
+  }
 
   //Update the state object whenever the field is changed
   const handleFieldChange = (e) => {
     const { value } = e.target;
     setTitle(value);
+  };
+
+  const handleEditFieldChange = (e) => {
+    const { value } = e.target;
+    setEditText(value);
   };
 
   //Handles saving to the tasks array
@@ -68,8 +78,14 @@ const App = () => {
       });
   };
 
-  const handleEdit = () => {
+  const handleEdit = (id) => {
     //TODO: Edit todo using the es6 find
+    if(!editText) {
+      return
+    }
+    db.collection("todos").doc(id).update({title: editText}).then(() => {
+      fetchTodos()
+    })
   };
 
   const handleRemove = (id) => {
@@ -78,6 +94,7 @@ const App = () => {
       .delete()
       .then(() => {
         console.log("Document successfully deleted!");
+        fetchTodos()
       })
       .catch((error) => {
         console.error("Error removing document: ", error);
@@ -90,7 +107,6 @@ const App = () => {
         <input
           type="text"
           name="task_title"
-          value={title}
           placeholder="Add task here"
           onChange={handleFieldChange}
         />
@@ -104,12 +120,19 @@ const App = () => {
           ? tasks.map((item, index) => (
               <li key={index}>
                 {item.title}
-                <button type="button" onClick={() => handleEdit()}>
+                <button type="button" onClick={() => handleEdit(item.id)}>
                   Edit
                 </button>
                 <button type="button" onClick={() => handleRemove(item.id)}>
                   Delete
                 </button>
+                <input
+                  type="text"
+                  name="edit_task"
+                  defaultValue={item.title}
+                  // placeholder="Edit task...."
+                  onChange={handleEditFieldChange}
+                />
               </li>
             ))
           : "Nothing in list"}
