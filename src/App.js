@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import React from "react";
 import firebase from "firebase/app";
 import "firebase/firestore";
+
+import { AuthContext, AuthProvider } from "./context/auth";
 
 import "./App.css";
 
@@ -18,13 +20,16 @@ if (typeof window !== "undefined" && !firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
 //Load firebase firestore
-var db = firebase.firestore();
+const db = firebase.firestore();
 
 const App = () => {
-  const [title, setTitle] = useState("");
-  const [tasks, setTasks] = useState([]);
+  const [title, setTitle] = React.useState("");
+  const [tasks, setTasks] = React.useState([]);
 
-  useEffect(() => {
+  const user = React.useContext(AuthContext);
+  console.log(user);
+
+  React.useEffect(() => {
     //Check if localstorage is
     const storedTasks = JSON.parse(window.localStorage.getItem("tasks"));
     console.log(storedTasks);
@@ -33,7 +38,7 @@ const App = () => {
     }
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     db.collection("todos").onSnapshot((querySnapshot) => {
       var todos = [];
       querySnapshot.forEach((doc) => {
@@ -44,7 +49,7 @@ const App = () => {
   }, []);
 
   //UseEffect re-renders application whenever dependency objects are changed
-  useEffect(() => {
+  React.useEffect(() => {
     //Save to localstorage whenever tasks is updated
     if (tasks.length > 0) {
       console.log("save tasks to localstorage");
@@ -74,36 +79,38 @@ const App = () => {
   };
 
   return (
-    <div className="App">
-      <div>
-        <input
-          type="text"
-          name="task_title"
-          value={title}
-          placeholder="Add task here"
-          onChange={handleFieldChange}
-        />
-        <button type="button" onClick={handleSubmit}>
-          Add task
-        </button>
-      </div>
+    <AuthProvider>
+      <div className="App">
+        <div>
+          <input
+            type="text"
+            name="task_title"
+            value={title}
+            placeholder="Add task here"
+            onChange={handleFieldChange}
+          />
+          <button type="button" onClick={handleSubmit}>
+            Add task
+          </button>
+        </div>
 
-      <ul>
-        {tasks?.length > 0
-          ? tasks.map((item, index) => (
-              <li key={index}>
-                {item}
-                <button type="button" onClick={handleEdit}>
-                  Edit
-                </button>
-                <button type="button" onClick={handleRemove}>
-                  Delete
-                </button>
-              </li>
-            ))
-          : "Nothing in list"}
-      </ul>
-    </div>
+        <ul>
+          {tasks?.length > 0
+            ? tasks.map((item, index) => (
+                <li key={index}>
+                  {item}
+                  <button type="button" onClick={handleEdit}>
+                    Edit
+                  </button>
+                  <button type="button" onClick={handleRemove}>
+                    Delete
+                  </button>
+                </li>
+              ))
+            : "Nothing in list"}
+        </ul>
+      </div>
+    </AuthProvider>
   );
 };
 
