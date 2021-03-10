@@ -4,10 +4,13 @@ This exercise is to add authentication using localstorage and [react-router](htt
 
 ### To do
 
-- [ ] Add login page route with login form that accepts user name and password. Use [react-hook-form](https://react-hook-form.com/)
+- [ ] Add login page route (`/login`) with login form that accepts user name and password. Use [react-hook-form](https://react-hook-form.com/)
+- [ ] Redirect the user to the `/login` route if they are not logged-in
+- [ ] Restrict the user from viewing the tasks if they are not logged-in (using [react-router](https://reactrouter.com/web/guides/quick-start))
 - [ ] Update userContext with logged in user information
 - [ ] Store tasks with author information
-- [ ] Display tasks with author information
+- [ ] Display tasks with author information (any author can view all tasks)
+- [ ] Display a 404 page if the user navigates to a route that does not exist
 
 ### Setup Instructions
 
